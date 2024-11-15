@@ -1,5 +1,5 @@
 <template >
-  <div class="w-full h-screen font-serif">
+  <div class="w-full h-screen font-serif fixed">
     <Home />
   </div>
 </template>
