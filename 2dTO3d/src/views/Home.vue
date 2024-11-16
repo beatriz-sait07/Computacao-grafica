@@ -50,10 +50,12 @@
                 Tirar Foto
             </button> <!--tira a foto meio obvio-->
 
-            <section id="sendImg" class="flex bg-gray-700 w-full h-[60%] rounded-xl  justify-center items-center">
-                <p>pegar img da pipol</p>
-                <video id="preparaTirarFoto" autoplay></video> <!--onde a img vai aparece/ autoplay not is obrigation-->
-                <canvas id="rendFoto"></canvas> <!--rederiza a img-->
+            <section id="sendImg"
+                class="flex bg-gray-700 w-full h-[60%] md:h-[85%] rounded-xl  justify-center items-center">
+                <video id="preparaTirarFoto" class="w-[60%] h-[80%] flex object-fill" autoplay></video>
+                <!--onde a img vai aparece/ autoplay not is obrigation-->
+                <canvas id="rendFoto" class="w-[60%] h-[80%] hidden object-fill"></canvas>
+                <!-- rederiza a img -->
             </section>
         </div>
 
@@ -65,6 +67,7 @@
             </ul>
             <p class="text-white">&copy; 2024</p>
         </footer>
+
     </div>
 </template>
 
@@ -95,9 +98,15 @@ onMounted(() => {
 
 function enviarFoto() {
     var video = document.querySelector('#preparaTirarFoto');
-    
-    
-    navigator.mediaDevices.getUserMedia({ video: true })
+
+    const specs = {
+        video: {
+            with: 320,
+            height: 110,
+        }
+    }
+
+    navigator.mediaDevices.getUserMedia(specs)
         .then(stream => {
             video.srcObject = stream; //pegando frames do video 
             video.play(); // "vendo video"
@@ -107,17 +116,17 @@ function enviarFoto() {
         })
 }
 
-window.addEventListener("DOMContentLoaded", enviarFoto)
+function confirmAcction(element) {
+    $(element).append(`
+        <div id="submitFotoTirada" class="hidden w-full h-[10%] justify-center gap-3 items-center">
+            <button id="confirSend"
+                class="relative mt-2 bg-green-900 w-[40%] h-[24px] rounded-full cursor-pointer self-end italic">Salvar</button>
+            <button id="cancelSend"
+                class="relative mt-2 bg-red-900 w-[40%] h-[24px] rounded-full cursor-pointer self-end italic">Cancelar</button>
+        </div>
+    `)
+}
 
-/*
-
-            <div id="submitFotoTirada" class="flex w-full h-[15%] justify-center gap-3 items-center">
-                <button id="confirSend"
-                    class="relative mt-2 bg-green-900 w-[40%] h-[24px] rounded-full cursor-pointer self-end italic">Salvar</button>
-                <button id="cancelSend"
-                    class="relative mt-2 bg-red-900 w-[40%] h-[24px] rounded-full cursor-pointer self-end italic">Cancelar</button>
-            </div>
-*/
 //-------JQUERY question-------
 $(document).ready(function () {
     $("#opc").click(function () {
@@ -149,9 +158,13 @@ $(document).ready(function () {
 
     })
 
-    $('#takeFoto').click(
-        console.log('click no butao')
-    )
+    $('#takeFoto').click(function () {
+        enviarFoto()
+        $('#takeFoto').removeClass('flex').addClass('hidden');
+        $('#submitFotoTirada').removeClass('hidden').addClass('flex');
+        confirmAcction('#sendImg')
+    })
+
 
 });
 
