@@ -1,5 +1,5 @@
 <template>
-    <!-- <div id="apresentação" class="absoluted w-full h-screen flex flex-col items-center justify-center">
+    <div id="apresentação" class="absoluted w-full h-screen flex flex-col items-center justify-center">
         <header class="w-full h-[5%] text-2xl text-center flex items-center justify-center md:text-4xl">
             <p class="relative mt-16">Projeto conversão de imagem 2D para 3D</p>
         </header>
@@ -28,33 +28,35 @@
             </ul>
             <p class="text-white">&copy; 2024</p>
         </footer>
-    </div> -->
+    </div>
 
-    <div id="visualOpcoes" class="flex absoluted w-full h-screen flex-col items-center justify-center">
+    <div id="visualOpcoes" class="hidden absoluted w-full h-screen flex-col items-center justify-center">
         <header class="w-full h-[20%] text-xl text-center flex flex-col p-2">
             <button id="close"
                 class="relative mt-2 bg-red-900 px-3 py-2 rounded-full cursor-pointer self-end italic">X</button>
             <p class="relative text-md font-black p-2">Projeto conversão de imagem 2D para 3D</p>
         </header>
 
-        <div id="fotoTirada" class="flex flex-col justify-center border-1 w-[90%] h-[60%] ">
-            <button id="takeFoto"
-                class="flex gap-2 bg-gray-700 rounded-full w-36 h-10 justify-center items-center font-black">
-                <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
-                    viewBox="0 0 24 24">
-                    <path stroke="currentColor" stroke-linejoin="round" stroke-width="2"
-                        d="M4 18V8a1 1 0 0 1 1-1h1.5l1.707-1.707A1 1 0 0 1 8.914 5h6.172a1 1 0 0 1 .707.293L17.5 7H19a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z" />
-                    <path stroke="currentColor" stroke-linejoin="round" stroke-width="2"
-                        d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                </svg>
-                Tirar Foto
-            </button> <!--tira a foto meio obvio-->
-
+        <div id="fotoTirada" class="flex flex-col justify-center border-1 w-[90%] h-[60%] md:w-[60%]">
             <section id="sendImg"
-                class="flex bg-gray-700 w-full h-[60%] md:h-[85%] rounded-xl  justify-center items-center">
-                <video id="preparaTirarFoto" class="w-[60%] h-[80%] flex object-fill" autoplay></video>
+                class="flex bg-gray-700 w-full h-[60%] md:h-[85%] rounded-xl justify-center items-center flex-col gap-2 p-2">
+                <video id="preparaTirarFoto" class="w-[50%] h-[80%] flex object-fill" autoplay></video>
+
+                <button id="takeFoto"
+                    class="flex gap-2 bg-gray-800 rounded-full w-36 h-10 justify-center items-center font-black">
+                    <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
+                        viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linejoin="round" stroke-width="2"
+                            d="M4 18V8a1 1 0 0 1 1-1h1.5l1.707-1.707A1 1 0 0 1 8.914 5h6.172a1 1 0 0 1 .707.293L17.5 7H19a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z" />
+                        <path stroke="currentColor" stroke-linejoin="round" stroke-width="2"
+                            d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                    </svg>
+                    Tirar Foto
+                </button> <!--tira a foto meio obvio-->
+
+
                 <!--onde a img vai aparece/ autoplay not is obrigation-->
-                <canvas id="rendFoto" class="w-[60%] h-[80%] hidden object-fill"></canvas>
+                <canvas id="rendFoto" class="w-[50%] h-[80%] hidden object-fill"></canvas>
                 <!-- rederiza a img -->
             </section>
         </div>
@@ -117,15 +119,63 @@ function enviarFoto() {
 }
 
 function confirmAcction(element) {
+    // Adiciona os botões "Salvar" e "Cancelar" dinamicamente
     $(element).append(`
-        <div id="submitFotoTirada" class="hidden w-full h-[10%] justify-center gap-3 items-center">
+        <div id="submitFotoTirada" class="flex w-full h-[10%] justify-center gap-3 items-center">
             <button id="confirSend"
                 class="relative mt-2 bg-green-900 w-[40%] h-[24px] rounded-full cursor-pointer self-end italic">Salvar</button>
             <button id="cancelSend"
                 class="relative mt-2 bg-red-900 w-[40%] h-[24px] rounded-full cursor-pointer self-end italic">Cancelar</button>
         </div>
-    `)
+    `);
+
+    // Evento para salvar a foto
+    $('#confirSend').on('click', function () {
+        console.log('Tentou enviar a foto');
+
+        // Mostra mensagem e oculta o canvas
+        $(element).find('video').removeClass('flex').addClass('hidden');
+        $(element).find('canvas').removeClass('flex').addClass('hidden');
+        $(element).append(`<p>Foto enviada com sucesso!</p>`);
+        // useLink.href = $(element).find('canvas').toDataURL(); //manda a url da img
+
+    });
+
+    // Evento para cancelar
+    $('#cancelSend').on('click', function () {
+        console.log('Tentou cancelar a foto');
+
+        // Oculta o canvas e mostra o vídeo novamente
+        $(element).find('canvas').removeClass('flex').addClass('hidden');
+        $(element).find('video').removeClass('hidden').addClass('flex');
+
+    });
 }
+
+
+
+// function confirmAcction(element) {
+//     $(element).append(`
+//         <div id="submitFotoTirada" class="flex w-full h-[10%] justify-center gap-3 items-center">
+//             <button id="confirSend"
+//                 class="relative mt-2 bg-green-900 w-[40%] h-[24px] rounded-full cursor-pointer self-end italic">Salvar</button>
+//             <button id="cancelSend"
+//                 class="relative mt-2 bg-red-900 w-[40%] h-[24px] rounded-full cursor-pointer self-end italic">Cancelar</button>
+//         </div>
+//     `)
+
+//     $('#confirSend').click(function () {
+//         console.log(`tento envia`)
+//         $(this).find('element # canvas').removeClass('flex').append(`
+//         <p>Enviou a msg pro back</p>
+//     `);
+//     })
+
+//     $('#cancelSend').click(function () {
+//         console.log(`tento cancela`)
+//         $(this).find('element canvas').removeClass('flex').find('element video').addClass('flex');
+//     })
+// }
 
 //-------JQUERY question-------
 $(document).ready(function () {
@@ -142,10 +192,26 @@ $(document).ready(function () {
 
         $("#tirar").click(function () {
             console.log('funfou2');
+            enviarFoto();
             $('#apresentação').removeClass('flex').addClass('hidden');
             $('#visualOpcoes').removeClass('hidden').addClass('flex');
-            $('#fotoTirada').removeClass('hidden').addClass('flex');
-        })
+
+            $('#takeFoto').click(function () {
+                var video = $('#preparaTirarFoto')[0];
+                var canvas = $('#rendFoto')[0];
+                var context = canvas.getContext('2d');
+
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                $('#takeFoto').removeClass('flex').addClass('hidden');
+                $('#preparaTirarFoto').removeClass('flex').addClass('hidden');
+                $('#rendFoto').removeClass('hidden').addClass('flex');
+                confirmAcction('#sendImg')
+            });
+        });
 
 
     });
@@ -154,16 +220,9 @@ $(document).ready(function () {
         console.log('feche nengue');
         $('#visualOpcoes').removeClass('flex').addClass('hidden');
         $('#apresentação').removeClass('hidden').addClass('flex')
-
-
     })
 
-    $('#takeFoto').click(function () {
-        enviarFoto()
-        $('#takeFoto').removeClass('flex').addClass('hidden');
-        $('#submitFotoTirada').removeClass('hidden').addClass('flex');
-        confirmAcction('#sendImg')
-    })
+
 
 
 });
