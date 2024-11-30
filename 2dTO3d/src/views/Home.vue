@@ -15,7 +15,7 @@
             </section>
             <article id="iniciarApp1" class="h-[35%] w-full flex justify-center items-center flex-col-reverse gap-3">
                 <button id="opc" @click="iniciarApp"
-                    class="bg-gray-700 px-12 py-2 rounded-full shadow-slate-700 shadow-xl cursor-pointer">
+                    class="bg-transparent px-12 py-2 rounded-full shadow-slate-700 shadow-lg cursor-pointer border-2 border-gray-500">
                     Iniciar
                 </button>
             </article>
@@ -37,7 +37,7 @@
             <p class="relative text-md font-black p-2">Projeto conversão de imagem 2D para 3D</p>
         </header>
 
-        <div id="fotoTirada" class="flex flex-col justify-center border-1 w-[90%] h-[60%] md:w-[60%]">
+        <div id="fotoTirada" class="hidden flex-col justify-center border-1 w-[90%] h-[60%] md:w-[60%]">
             <section id="sendImg"
                 class="flex bg-gray-700 w-full h-[60%] md:h-[85%] rounded-xl justify-center items-center flex-col gap-2 p-2">
                 <video id="preparaTirarFoto" class="w-[50%] h-[80%] flex object-fill" autoplay></video>
@@ -97,8 +97,7 @@ onMounted(() => {
     setInterval(slide, 3000);
 });
 
-
-function enviarFoto() {
+function enviarFotoTirada() {
     var video = document.querySelector('#preparaTirarFoto');
 
     const specs = {
@@ -107,7 +106,6 @@ function enviarFoto() {
             height: 110,
         }
     }
-
     navigator.mediaDevices.getUserMedia(specs)
         .then(stream => {
             video.srcObject = stream; //pegando frames do video 
@@ -116,6 +114,25 @@ function enviarFoto() {
         .catch(e => {
             console.error('Erro', e)
         })
+}
+
+function desligarCamera() {
+    var video = document.querySelector('#preparaTirarFoto');
+
+    if (video.srcObject) { //a funcao track serve para câmera e microfone, se aplicável
+        video.srcObject.getTracks().forEach(track => {
+            track.stop();
+        });
+        video.srcObject = null;
+    }
+    fecharOpc()
+}
+function fecharOpc() {
+    $('#close').click(function () {
+        console.log('feche nengue');
+        $('#visualOpcoes').removeClass('flex').addClass('hidden');
+        $('#apresentação').removeClass('hidden').addClass('flex')
+    })
 }
 
 function confirmAcction(element) {
@@ -132,13 +149,10 @@ function confirmAcction(element) {
     // Evento para salvar a foto
     $('#confirSend').on('click', function () {
         console.log('Tentou enviar a foto');
-
-        // Mostra mensagem e oculta o canvas
+        desligarCamera()
         $(element).find('video').removeClass('flex').addClass('hidden');
         $(element).find('canvas').removeClass('flex').addClass('hidden');
         $(element).append(`<p>Foto enviada com sucesso!</p>`);
-        // useLink.href = $(element).find('canvas').toDataURL(); //manda a url da img
-
     });
 
     // Evento para cancelar
@@ -148,34 +162,11 @@ function confirmAcction(element) {
         // Oculta o canvas e mostra o vídeo novamente
         $(element).find('canvas').removeClass('flex').addClass('hidden');
         $(element).find('video').removeClass('hidden').addClass('flex');
+        enviarFotoTirada()
+        desligarCamera()
 
     });
 }
-
-
-
-// function confirmAcction(element) {
-//     $(element).append(`
-//         <div id="submitFotoTirada" class="flex w-full h-[10%] justify-center gap-3 items-center">
-//             <button id="confirSend"
-//                 class="relative mt-2 bg-green-900 w-[40%] h-[24px] rounded-full cursor-pointer self-end italic">Salvar</button>
-//             <button id="cancelSend"
-//                 class="relative mt-2 bg-red-900 w-[40%] h-[24px] rounded-full cursor-pointer self-end italic">Cancelar</button>
-//         </div>
-//     `)
-
-//     $('#confirSend').click(function () {
-//         console.log(`tento envia`)
-//         $(this).find('element # canvas').removeClass('flex').append(`
-//         <p>Enviou a msg pro back</p>
-//     `);
-//     })
-
-//     $('#cancelSend').click(function () {
-//         console.log(`tento cancela`)
-//         $(this).find('element canvas').removeClass('flex').find('element video').addClass('flex');
-//     })
-// }
 
 //-------JQUERY question-------
 $(document).ready(function () {
@@ -183,19 +174,19 @@ $(document).ready(function () {
         $('#iniciarApp1').append(`
             <div class="opcoes">
                 <lu class="flex gap-5 ">
-                    <li id="anexo" class="bg-gray-800 rounded-full p-2 cursor-pointer">Anexar Foto</li>
-                    <li id="busca" class="bg-gray-800 rounded-full p-2 cursor-pointer">Buscar Foto</li>
-                    <li id="tirar" class="bg-gray-800 rounded-full p-2 cursor-pointer">Tirar Foto</li>
+                    <li id="anexo" class="bg-transparent border-2 border-gray-500 rounded-full p-4 cursor-pointer">Anexar Foto</li>
+                    <li id="busca" class="bg-transparent border-2 border-gray-500 rounded-full p-4 cursor-pointer">Buscar Foto</li>
+                    <li id="tirar" class="bg-transparent border-2 border-gray-500 rounded-full p-4 cursor-pointer">Tirar Foto</li>
                 </lu>
             </div>
         `)
 
         $("#tirar").click(function () {
             console.log('funfou2');
-            enviarFoto();
+            enviarFotoTirada();
             $('#apresentação').removeClass('flex').addClass('hidden');
             $('#visualOpcoes').removeClass('hidden').addClass('flex');
-
+            $('#fotoTirada').removeClass('hidden').addClass('flex');
             $('#takeFoto').click(function () {
                 var video = $('#preparaTirarFoto')[0];
                 var canvas = $('#rendFoto')[0];
@@ -209,21 +200,14 @@ $(document).ready(function () {
                 $('#takeFoto').removeClass('flex').addClass('hidden');
                 $('#preparaTirarFoto').removeClass('flex').addClass('hidden');
                 $('#rendFoto').removeClass('hidden').addClass('flex');
-                confirmAcction('#sendImg')
+                confirmAcction('#sendImg');
             });
         });
 
 
     });
 
-    $('#close').click(function () {
-        console.log('feche nengue');
-        $('#visualOpcoes').removeClass('flex').addClass('hidden');
-        $('#apresentação').removeClass('hidden').addClass('flex')
-    })
-
-
-
+    fecharOpc()
 
 });
 
