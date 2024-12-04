@@ -29,6 +29,7 @@
             <p class="text-white">&copy; 2024</p>
         </footer>
     </div>
+    <!-- <div id="renderObj" class="absoluted w-full h-screen flex-col items-center justify-center"></div> -->
 
     <div id="visualOpcoes" class="hidden absoluted w-full h-screen flex-col items-center justify-center">
         <header class="w-full h-[20%] text-xl text-center flex flex-col p-2">
@@ -41,7 +42,7 @@
             <section id="sendImg"
                 class="flex bg-gray-700 w-full h-[60%] md:h-[85%] rounded-xl justify-center items-center flex-col gap-2 p-2">
                 <video id="preparaTirarFoto" class="w-[50%] h-[80%] flex object-fill" autoplay></video>
-
+                <canvas id="rendFoto" class="w-[60%] h-[80%] hidden object-fill"></canvas>
                 <button id="takeFoto"
                     class="flex gap-2 bg-gray-800 rounded-full w-36 h-10 justify-center items-center font-black">
                     <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
@@ -52,14 +53,33 @@
                             d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                     </svg>
                     Tirar Foto
-                </button> <!--tira a foto meio obvio-->
-
-
-                <!--onde a img vai aparece/ autoplay not is obrigation-->
-                <canvas id="rendFoto" class="w-[50%] h-[80%] hidden object-fill"></canvas>
-                <!-- rederiza a img -->
+                </button>
             </section>
         </div>
+        <div id="buscarFotoBanco"
+            class="hidden flex-col justify-around items-center border-1 w-[90%] h-[60%] md:w-[60%] bg-gray-700 rounded-lg">
+            <section class="w-full flex justify-center">
+                <div class="w-[80%] rounded-lg border-2 bg-transparent border-gray-500 flex px-3 py-1">
+                    <input type="text" name="buscaImg" id="buscaImg" class="bg-transparent flex-1">
+                    <svg class="w-6 h-6 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
+                        height="24" fill="none" viewBox="0 0 24 24">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-width="2"
+                            d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
+                    </svg>
+
+                </div>
+            </section>
+            <section class="w-full flex justify-center h-[60%]">
+                <!--botar um loader para mostra a busca-->
+                <div class="w-[80%] h-full rounded-lg border-2 bg-transparent border-gray-500 flex p-2">
+                    <p>busca do banco</p>
+                </div>
+            </section>
+        </div>
+
+        <div id="anexarFoto"></div>
+
+        <div id="exibirObj" class="hidden w-[80%] justify-center h-full border border-gray-700 rounded-md"></div>
 
         <footer class="w-full h-[10%] flex flex-col justify-center items-center p-6 text-center gap-2 text-sm">
             <ul class="flex gap-6">
@@ -71,11 +91,16 @@
         </footer>
 
     </div>
+
+
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import $ from 'jquery';
+import { Scene, PerspectiveCamera, WebGLRenderer, DirectionalLight, AmbientLight, BoxGeometry, MeshBasicMaterial, Mesh } from 'three';
+import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 const imagens = ref([
     { src: "../src/assets/carrossel/img1.png", alt: "CADERNO" },
@@ -92,7 +117,66 @@ const leftIndex = computed(() => {
 const rightIndex = computed(() => {
     return (indexAtual.value + 1) % imagens.value.length;
 });
+onMounted(() => {
+    const containerRender = document.getElementById('renderObj');
+    const render = new WebGLRenderer({ alpha: true });
+    const cena = new Scene();
+    const camera = new PerspectiveCamera(75, containerRender.clientWidth / containerRender.clientHeight, 0.1, 1000);
+    const luzDirecional = new DirectionalLight(0xffffff, 1);
+    const luzAmbiente = new AmbientLight(0x404040);
+    const controls = new OrbitControls(camera, render.domElement);
 
+    if (!containerRender) {
+        console.error("Conteiner 'renderObj' não encontrado.");
+        return;
+    }
+    // Criando o cubo de teste usando Three.js
+    const geometria = new BoxGeometry(100, 100, 100);
+    const material = new MeshBasicMaterial({ color: 0x00ff00 });
+    // const cubo = new Mesh(geometria, material);
+    // cubo.position.set(0, 50, 0);
+    // cena.add(cubo);
+
+    luzDirecional.position.set(1, 1, 1).normalize();
+    cena.add(luzDirecional);
+    cena.add(luzAmbiente);
+
+    render.setClearColor(0x000000, 0);
+    render.setSize(containerRender.clientWidth, containerRender.clientHeight);
+    containerRender.appendChild(render.domElement);
+
+    camera.position.set(200, 200, 400);
+    camera.lookAt(0, 50, 0);
+
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.enableZoom = true;
+
+    const loader = new OBJLoader();
+    loader.setPath('../src/assets/');
+    loader.load(
+        'teste01.obj',
+        (obj) => {
+            obj.scale.set(200, 200, 200);
+            obj.position.set(0, 0, 0);
+            cena.add(obj);
+            console.log('Objeto carregado com sucesso!');
+        },
+        (progress) => console.log(`Carregando: ${(progress.loaded / progress.total) * 100}%`),
+        (error) => console.error('Erro ao carregar o objeto:', error)
+    );
+    // Animação
+    const animate = () => {
+        // cubo.rotation.y += 0.01; // Gira o cubo
+        controls.update();
+        requestAnimationFrame(animate);
+        render.render(cena, camera);
+    }
+    animate();
+});
+
+
+//FUNCOES DE FUNCIONAMENTO DE CLICK E AFINS
 onMounted(() => {
     setInterval(slide, 3000);
 });
@@ -128,6 +212,7 @@ function desligarCamera() {
     fecharOpc()
 }
 function fecharOpc() {
+    console.log("tentou fechar----")
     $('#close').click(function () {
         console.log('feche nengue');
         $('#visualOpcoes').removeClass('flex').addClass('hidden');
@@ -152,7 +237,13 @@ function confirmAcction(element) {
         desligarCamera()
         $(element).find('video').removeClass('flex').addClass('hidden');
         $(element).find('canvas').removeClass('flex').addClass('hidden');
-        $(element).append(`<p>Foto enviada com sucesso!</p>`);
+        $('#submitFotoTirada').removeClass('flex').addClass('hidden');
+        $(element).append(`<div class="c-loader"><div>`);
+        $('#sendImg').removeClass('flex').addClass('hidden');
+        $('#fotoTirada').removeClass('flex').addClass('hidden');
+        // animate();
+        $('#exibirObj').removeClass('hidden').addClass('flex');
+
     });
 
     // Evento para cancelar
@@ -182,8 +273,8 @@ $(document).ready(function () {
         `)
 
         $("#tirar").click(function () {
-            console.log('funfou2');
             enviarFotoTirada();
+            $('#buscarFotoBanco').removeClass('flex').addClass('hidden')
             $('#apresentação').removeClass('flex').addClass('hidden');
             $('#visualOpcoes').removeClass('hidden').addClass('flex');
             $('#fotoTirada').removeClass('hidden').addClass('flex');
@@ -205,6 +296,13 @@ $(document).ready(function () {
         });
 
 
+        $('#busca').click(function () {
+            $('#fotoTirada').addClass('hidden');
+            $('#apresentação').removeClass('flex').addClass('hidden');
+            $('#visualOpcoes').removeClass('hidden').addClass('flex');
+            $('#buscarFotoBanco').removeClass('hidden').addClass('flex');
+
+        })
     });
 
     fecharOpc()
@@ -258,5 +356,20 @@ $(document).ready(function () {
 
 li {
     list-style-type: none;
+}
+
+.c-loader {
+    width: 80px;
+    height: 80px;
+    border: 5px solid #D9D9D9;
+    border-radius: 100%;
+    border-top-color: #333333;
+    animation: isRotating 1s infinite;
+}
+
+@keyframes isRotating {
+    to {
+        transform: rotate(1turn);
+    }
 }
 </style>
