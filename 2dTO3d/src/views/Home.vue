@@ -1,6 +1,6 @@
 <template>
     <div id="apresentação" class="absoluted w-full h-screen flex flex-col items-center justify-center">
-        <header class="w-full h-[5%] text-2xl text-center flex items-center justify-center md:text-4xl">
+        <header class="w-full h-[5%] text-2xl text-center flex items-center justify-center md:text-4xl fixed">
             <p class="relative mt-16">Projeto conversão de imagem 2D para 3D</p>
         </header>
 
@@ -29,14 +29,13 @@
             <p class="text-white">&copy; 2024</p>
         </footer>
     </div>
-    <!-- <div id="renderObj" class="absoluted w-full h-screen flex-col items-center justify-center"></div> -->
 
-    <div id="visualOpcoes" class="hidden absoluted w-full h-screen flex-col items-center justify-center">
-        <header class="w-full h-[20%] text-xl text-center flex flex-col p-2">
+    <div id="visualOpcoes" class="hidden absoluted w-full h-screen flex-col items-center">
+        <div class="w-full h-[20%] text-xl text-center flex flex-col p-2">
             <button id="close"
                 class="relative mt-2 bg-red-900 px-3 py-2 rounded-full cursor-pointer self-end italic">X</button>
             <p class="relative text-md font-black p-2">Projeto conversão de imagem 2D para 3D</p>
-        </header>
+        </div>
 
         <div id="fotoTirada" class="hidden flex-col justify-center border-1 w-[90%] h-[60%] md:w-[60%]">
             <section id="sendImg"
@@ -79,20 +78,8 @@
 
         <div id="anexarFoto"></div>
 
-        <div id="exibirObj" class="hidden w-[80%] justify-center h-full border border-gray-700 rounded-md"></div>
-
-        <footer class="w-full h-[10%] flex flex-col justify-center items-center p-6 text-center gap-2 text-sm">
-            <ul class="flex gap-6">
-                <li class="liFoot underline underline-offset-2">Beatriz Saito</li>
-                <li class="liFoot underline underline-offset-2">Maria Angélica</li>
-                <li class="liFoot underline underline-offset-2">Taynan Mancilla</li>
-            </ul>
-            <p class="text-white">&copy; 2024</p>
-        </footer>
-
     </div>
-
-
+    <div id="exibirObj" class="flex w-[80%] justify-center h-full border border-gray-700 rounded-md bg-yellow-600"></div>
 </template>
 
 <script setup>
@@ -117,47 +104,47 @@ const leftIndex = computed(() => {
 const rightIndex = computed(() => {
     return (indexAtual.value + 1) % imagens.value.length;
 });
+
 onMounted(() => {
-    const containerRender = document.getElementById('renderObj');
-    const render = new WebGLRenderer({ alpha: true });
-    const cena = new Scene();
-    const camera = new PerspectiveCamera(75, containerRender.clientWidth / containerRender.clientHeight, 0.1, 1000);
-    const luzDirecional = new DirectionalLight(0xffffff, 1);
-    const luzAmbiente = new AmbientLight(0x404040);
-    const controls = new OrbitControls(camera, render.domElement);
+    const containerRender = document.getElementById('exibirObj');
 
     if (!containerRender) {
         console.error("Conteiner 'renderObj' não encontrado.");
         return;
     }
-    // Criando o cubo de teste usando Three.js
-    const geometria = new BoxGeometry(100, 100, 100);
-    const material = new MeshBasicMaterial({ color: 0x00ff00 });
-    // const cubo = new Mesh(geometria, material);
-    // cubo.position.set(0, 50, 0);
-    // cena.add(cubo);
 
-    luzDirecional.position.set(1, 1, 1).normalize();
-    cena.add(luzDirecional);
-    cena.add(luzAmbiente);
-
-    render.setClearColor(0x000000, 0);
+    // Configurando o renderizador
+    const render = new WebGLRenderer({ alpha: true });
+    render.setClearColor(0x000000, 0); // Fundo transparente
     render.setSize(containerRender.clientWidth, containerRender.clientHeight);
     containerRender.appendChild(render.domElement);
 
-    camera.position.set(200, 200, 400);
-    camera.lookAt(0, 50, 0);
+    // Criando cena e câmera
+    const cena = new Scene();
+    const camera = new PerspectiveCamera(75, containerRender.clientWidth / containerRender.clientHeight, 0.1, 1000);
+    camera.position.set(0, 1, 5);
 
+    // Adicionando luzes
+    const luzDirecional = new DirectionalLight(0xffffff, 1);
+    luzDirecional.position.set(1, 1, 1).normalize();
+    cena.add(luzDirecional);
+
+    const luzAmbiente = new AmbientLight(0x404040);
+    cena.add(luzAmbiente);
+
+    // Adicionando controles de órbita
+    const controls = new OrbitControls(camera, render.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     controls.enableZoom = true;
 
+    // Carregando objeto 3D
     const loader = new OBJLoader();
     loader.setPath('../src/assets/');
     loader.load(
         'teste01.obj',
         (obj) => {
-            obj.scale.set(200, 200, 200);
+            obj.scale.set(1, 1, 1);
             obj.position.set(0, 0, 0);
             cena.add(obj);
             console.log('Objeto carregado com sucesso!');
@@ -165,13 +152,14 @@ onMounted(() => {
         (progress) => console.log(`Carregando: ${(progress.loaded / progress.total) * 100}%`),
         (error) => console.error('Erro ao carregar o objeto:', error)
     );
-    // Animação
+
+    // Função de animação
     const animate = () => {
-        // cubo.rotation.y += 0.01; // Gira o cubo
         controls.update();
-        requestAnimationFrame(animate);
         render.render(cena, camera);
-    }
+        requestAnimationFrame(animate);
+    };
+
     animate();
 });
 
@@ -212,7 +200,6 @@ function desligarCamera() {
     fecharOpc()
 }
 function fecharOpc() {
-    console.log("tentou fechar----")
     $('#close').click(function () {
         console.log('feche nengue');
         $('#visualOpcoes').removeClass('flex').addClass('hidden');
@@ -221,7 +208,6 @@ function fecharOpc() {
 }
 
 function confirmAcction(element) {
-    // Adiciona os botões "Salvar" e "Cancelar" dinamicamente
     $(element).append(`
         <div id="submitFotoTirada" class="flex w-full h-[10%] justify-center gap-3 items-center">
             <button id="confirSend"
@@ -231,7 +217,6 @@ function confirmAcction(element) {
         </div>
     `);
 
-    // Evento para salvar a foto
     $('#confirSend').on('click', function () {
         console.log('Tentou enviar a foto');
         desligarCamera()
@@ -241,21 +226,14 @@ function confirmAcction(element) {
         $(element).append(`<div class="c-loader"><div>`);
         $('#sendImg').removeClass('flex').addClass('hidden');
         $('#fotoTirada').removeClass('flex').addClass('hidden');
-        // animate();
-        $('#exibirObj').removeClass('hidden').addClass('flex');
-
     });
 
     // Evento para cancelar
     $('#cancelSend').on('click', function () {
-        console.log('Tentou cancelar a foto');
-
-        // Oculta o canvas e mostra o vídeo novamente
         $(element).find('canvas').removeClass('flex').addClass('hidden');
         $(element).find('video').removeClass('hidden').addClass('flex');
-        enviarFotoTirada()
-        desligarCamera()
-
+        enviarFotoTirada();
+        desligarCamera();
     });
 }
 
