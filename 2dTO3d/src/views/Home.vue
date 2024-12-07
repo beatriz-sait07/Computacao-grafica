@@ -56,7 +56,7 @@
             </section>
         </div>
         <div id="buscarFotoBanco"
-            class="hidden flex-col justify-around items-center border-1 w-[90%] h-[60%] md:w-[60%] bg-gray-700 rounded-lg">
+            class="hidden flex-col justify-around items-center border-1 w-[90%] h-[60%] md:w-[60%] bg-transparent rounded-lg">
             <section class="w-full flex justify-center">
                 <div class="w-[80%] rounded-lg border-2 bg-transparent border-gray-500 flex px-3 py-1">
                     <input type="text" name="buscaImg" id="buscaImg" class="bg-transparent flex-1">
@@ -76,10 +76,13 @@
             </section>
         </div>
 
-        <div id="anexarFoto"></div>
+        <div id="anexarFoto"
+            class="hidden flex-col justify-around items-center border-2 border-gray-500 w-[90%] h-[60%] md:w-[60%] rounded-lg">
+        </div>
 
+        <div id="exibirObj" class="hidden w-[80%] justify-center rounded-md">
+        </div>
     </div>
-    <div id="exibirObj" class="flex w-[80%] justify-center h-full border border-gray-700 rounded-md bg-yellow-600"></div>
 </template>
 
 <script setup>
@@ -109,19 +112,22 @@ onMounted(() => {
     const containerRender = document.getElementById('exibirObj');
 
     if (!containerRender) {
-        console.error("Conteiner 'renderObj' não encontrado.");
+        console.error("Conteiner 'exibirObj' não encontrado.");
         return;
     }
 
-    // Configurando o renderizador
+    const width = containerRender.clientWidth || window.innerWidth;
+    const height = containerRender.clientHeight || window.innerHeight;
+
     const render = new WebGLRenderer({ alpha: true });
     render.setClearColor(0x000000, 0); // Fundo transparente
-    render.setSize(containerRender.clientWidth, containerRender.clientHeight);
+    render.clear();
+    render.setSize(width, height);
     containerRender.appendChild(render.domElement);
 
     // Criando cena e câmera
     const cena = new Scene();
-    const camera = new PerspectiveCamera(75, containerRender.clientWidth / containerRender.clientHeight, 0.1, 1000);
+    const camera = new PerspectiveCamera(75, width / height, 0.1, 1000);
     camera.position.set(0, 1, 5);
 
     // Adicionando luzes
@@ -132,7 +138,6 @@ onMounted(() => {
     const luzAmbiente = new AmbientLight(0x404040);
     cena.add(luzAmbiente);
 
-    // Adicionando controles de órbita
     const controls = new OrbitControls(camera, render.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
@@ -162,7 +167,6 @@ onMounted(() => {
 
     animate();
 });
-
 
 //FUNCOES DE FUNCIONAMENTO DE CLICK E AFINS
 onMounted(() => {
@@ -200,10 +204,16 @@ function desligarCamera() {
     fecharOpc()
 }
 function fecharOpc() {
-    $('#close').click(function () {
+    $('#visualOpcoes').on('click', '#close', function () {
         console.log('feche nengue');
+        if ($('#visualOpcoes').length === 0) $('#apresentação').toggleClass('hidden flex');
+
         $('#visualOpcoes').removeClass('flex').addClass('hidden');
-        $('#apresentação').removeClass('hidden').addClass('flex')
+        $('#apresentação').removeClass('hidden').addClass('flex');;
+        $('#fotoTirada').removeClass('flex').addClass('hidden');
+        $('#buscarFotoBanco').removeClass('flex').addClass('hidden');
+        $('#anexarFoto').removeClass('flex').addClass('hidden');
+        desligarCamera()
     })
 }
 
@@ -217,15 +227,12 @@ function confirmAcction(element) {
         </div>
     `);
 
-    $('#confirSend').on('click', function () {
-        console.log('Tentou enviar a foto');
+    $('#fotoTirada').on('click', '#confirSend', function () {
         desligarCamera()
-        $(element).find('video').removeClass('flex').addClass('hidden');
-        $(element).find('canvas').removeClass('flex').addClass('hidden');
-        $('#submitFotoTirada').removeClass('flex').addClass('hidden');
-        $(element).append(`<div class="c-loader"><div>`);
-        $('#sendImg').removeClass('flex').addClass('hidden');
-        $('#fotoTirada').removeClass('flex').addClass('hidden');
+        $('#fotoTirada').toggleClass('hidden flex');
+        $('#exibirObj').toggleClass('hidden flex');
+        $('#busca').toggleClass('hidden flex');
+        // $(element).append(`<div class="c-loader"><div>`);
     });
 
     // Evento para cancelar
@@ -239,24 +246,32 @@ function confirmAcction(element) {
 
 //-------JQUERY question-------
 $(document).ready(function () {
-    $("#opc").click(function () {
-        $('#iniciarApp1').append(`
-            <div class="opcoes">
-                <lu class="flex gap-5 ">
-                    <li id="anexo" class="bg-transparent border-2 border-gray-500 rounded-full p-4 cursor-pointer">Anexar Foto</li>
-                    <li id="busca" class="bg-transparent border-2 border-gray-500 rounded-full p-4 cursor-pointer">Buscar Foto</li>
-                    <li id="tirar" class="bg-transparent border-2 border-gray-500 rounded-full p-4 cursor-pointer">Tirar Foto</li>
-                </lu>
-            </div>
-        `)
+    $('#iniciarApp1').on('click', '#opc', function () {
+        if ($('.opcoes').length === 0) {
+            $('#iniciarApp1').append(`
+                <div class="opcoes">
+                    <lu class="flex gap-5 ">
+                        <li id="anexo" class="bg-transparent border-2 border-gray-500 rounded-full p-4 cursor-pointer">Anexar Foto</li>
+                        <li id="busca" class="bg-transparent border-2 border-gray-500 rounded-full p-4 cursor-pointer">Buscar Foto</li>
+                        <li id="tirar" class="bg-transparent border-2 border-gray-500 rounded-full p-4 cursor-pointer">Tirar Foto</li>
+                    </lu>
+                </div>
+            `);
+        } else {
+            $('.opcoes').toggleClass('hidden flex');
+        }
 
-        $("#tirar").click(function () {
-            enviarFotoTirada();
-            $('#buscarFotoBanco').removeClass('flex').addClass('hidden')
-            $('#apresentação').removeClass('flex').addClass('hidden');
-            $('#visualOpcoes').removeClass('hidden').addClass('flex');
-            $('#fotoTirada').removeClass('hidden').addClass('flex');
-            $('#takeFoto').click(function () {
+        // $("#tirar").click(function () {
+        $('#apresentação').on('click', '#tirar', function () {
+            $('#apresentação').toggleClass('flex hidden');
+            $('#visualOpcoes').toggleClass('hidden flex');
+            $('#fotoTirada').toggleClass('hidden flex');
+            enviarFotoTirada()
+
+
+            // $('#buscarFotoBanco').removeClass('flex').addClass('hidden')
+            $('#visualOpcoes').on('click', '#takeFoto', function () {
+                console.log('tentou tirar')
                 var video = $('#preparaTirarFoto')[0];
                 var canvas = $('#rendFoto')[0];
                 var context = canvas.getContext('2d');
@@ -266,21 +281,28 @@ $(document).ready(function () {
 
                 context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-                $('#takeFoto').removeClass('flex').addClass('hidden');
-                $('#preparaTirarFoto').removeClass('flex').addClass('hidden');
-                $('#rendFoto').removeClass('hidden').addClass('flex');
+                $('#takeFoto').toggleClass('hidden flex');
+                $('#preparaTirarFoto').toggleClass('hidden flex');
+                $('#rendFoto').toggleClass('hidden flex');
                 confirmAcction('#sendImg');
             });
         });
 
-
-        $('#busca').click(function () {
+        $('#apresentação').on('click', '#busca', function () {
             $('#fotoTirada').addClass('hidden');
             $('#apresentação').removeClass('flex').addClass('hidden');
             $('#visualOpcoes').removeClass('hidden').addClass('flex');
             $('#buscarFotoBanco').removeClass('hidden').addClass('flex');
 
         })
+
+        $('#apresentação').on('click', '#anexo', function () {
+            console.log('Anexar Foto clicado!');
+            $('#apresentação').toggleClass('flex hidden');
+            $('#visualOpcoes').toggleClass('hidden flex');
+            $('#anexarFoto').toggleClass('hidden flex');
+        });
+
     });
 
     fecharOpc()
