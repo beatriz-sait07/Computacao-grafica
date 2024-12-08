@@ -56,7 +56,7 @@
             </section>
         </div>
         <div id="buscarFotoBanco"
-            class="hidden flex-col justify-around items-center border-1 w-[90%] h-[60%] md:w-[60%] bg-transparent rounded-lg">
+            class="hidden flex-col justify-around items-center border-1 w-[90%] h-[60%] md:w-[60%] bg-transparent rounded-lg p-2">
             <section class="w-full flex justify-center">
                 <div class="w-[80%] rounded-lg border-2 bg-transparent border-gray-500 flex px-3 py-1">
                     <input type="text" name="buscaImg" id="buscaImg" class="bg-transparent flex-1">
@@ -77,7 +77,30 @@
         </div>
 
         <div id="anexarFoto"
-            class="hidden flex-col justify-around items-center border-2 border-gray-500 w-[90%] h-[60%] md:w-[60%] rounded-lg">
+            class="hidden flex-col justify-around items-center border-2 border-gray-500 w-[90%] h-[60%] md:w-[60%] rounded-lg p-2">
+            <!--adicionar rota do back que recebera o arquivo para transformar de 2d para 3d-->
+            <form action="caminho.back" method="post" enctype="multipart/form-data" class="w-full h-full flex flex-col">
+                <h1 class="w-full h-[15%] flex justify-center items-center text-2xl">Anexar arquivos da galeria</h1>
+                <div
+                    class="w-full flex-1 border border-gray-400 rounded-md hover:bg-slate-800 hover:rounded-md hover:font-black">
+                    <label class="w-full h-full cursor-pointer flex justify-center items-center " for="arq">Anexar
+                        imagem
+                        a ser
+                        convertida</label>
+                    <input class="hidden" type="file" name="arquivo2d" id="arq" accept="image/*">
+                </div>
+                <div id="preview-container" class="w-full h-[50%] flex justify-center items-center mt-4">
+                    <img id="preview-image" class="hidden max-w-full max-h-full border border-gray-300 rounded-lg"
+                        alt="Pré-visualização da imagem">
+                </div>
+                <div class="w-full h-[20%] flex justify-center items-center">
+                    <button
+                        class="w-[90%] md:w-[60%] text-sm font-medium border border-gray-400 rounded-md p-2 hover:bg-slate-800 hover:rounded-md hover:font-black"
+                        type="submit">
+                        Visualizar imagem em 3D
+                    </button>
+                </div>
+            </form>
         </div>
 
         <div id="exibirObj" class="hidden w-[80%] justify-center rounded-md">
@@ -213,6 +236,7 @@ function fecharOpc() {
         $('#fotoTirada').removeClass('flex').addClass('hidden');
         $('#buscarFotoBanco').removeClass('flex').addClass('hidden');
         $('#anexarFoto').removeClass('flex').addClass('hidden');
+        $('#exibirObj').removeClass('flex').addClass('hidden');
         desligarCamera()
     })
 }
@@ -231,8 +255,6 @@ function confirmAcction(element) {
         desligarCamera()
         $('#fotoTirada').toggleClass('hidden flex');
         $('#exibirObj').toggleClass('hidden flex');
-        $('#busca').toggleClass('hidden flex');
-        // $(element).append(`<div class="c-loader"><div>`);
     });
 
     // Evento para cancelar
@@ -243,6 +265,34 @@ function confirmAcction(element) {
         desligarCamera();
     });
 }
+
+onMounted(() => {
+    const fileInput = document.getElementById('arq');
+    const previewImage = document.getElementById('preview-image');
+    const previewContainer = document.getElementById('preview-container');
+
+    if (fileInput) {
+        fileInput.addEventListener('change', function (event) {
+            const file = event.target.files[0];
+
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    previewImage.src = e.target.result;
+                    previewImage.classList.remove('hidden');
+                };
+
+                reader.readAsDataURL(file);
+            } else {
+                previewImage.classList.add('hidden');
+            }
+        });
+    } else {
+        console.error("Elemento 'fileInput' não encontrado no DOM.");
+    }
+});
+
 
 //-------JQUERY question-------
 $(document).ready(function () {
@@ -268,8 +318,6 @@ $(document).ready(function () {
             $('#fotoTirada').toggleClass('hidden flex');
             enviarFotoTirada()
 
-
-            // $('#buscarFotoBanco').removeClass('flex').addClass('hidden')
             $('#visualOpcoes').on('click', '#takeFoto', function () {
                 console.log('tentou tirar')
                 var video = $('#preparaTirarFoto')[0];
