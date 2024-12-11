@@ -42,6 +42,7 @@
                 class="flex bg-gray-700 w-full h-[60%] md:h-[85%] rounded-xl justify-center items-center flex-col gap-2 p-2">
                 <video id="preparaTirarFoto" class="w-[50%] h-[80%] flex object-fill" autoplay></video>
                 <canvas id="rendFoto" class="w-[60%] h-[80%] hidden object-fill"></canvas>
+                <canvas id="rendFotoProcessed" class="hidden object-fill"></canvas>
                 <button id="takeFoto"
                     class="flex gap-2 bg-gray-800 rounded-full w-36 h-10 justify-center items-center font-black">
                     <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none"
@@ -312,28 +313,66 @@ $(document).ready(function () {
         }
 
         // $("#tirar").click(function () {
+        // $('#apresentação').on('click', '#tirar', function () {
+        //     $('#apresentação').toggleClass('flex hidden');
+        //     $('#visualOpcoes').toggleClass('hidden flex');
+        //     $('#fotoTirada').toggleClass('hidden flex');
+        //     enviarFotoTirada()
+
+        //     $('#visualOpcoes').on('click', '#takeFoto', function () {
+        //         console.log('tentou tirar')
+        //         var video = $('#preparaTirarFoto')[0];
+        //         var canvas = $('#rendFoto')[0];
+        //         var context = canvas.getContext('2d');
+
+        //         canvas.width = video.videoWidth;
+        //         canvas.height = video.videoHeight;
+
+        //         context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        //         $('#takeFoto').toggleClass('hidden flex');
+        //         $('#preparaTirarFoto').toggleClass('hidden flex');
+        //         $('#rendFoto').toggleClass('hidden flex');
+        //         confirmAcction('#sendImg');
+        //     });
+        // });
+
         $('#apresentação').on('click', '#tirar', function () {
             $('#apresentação').toggleClass('flex hidden');
             $('#visualOpcoes').toggleClass('hidden flex');
             $('#fotoTirada').toggleClass('hidden flex');
-            enviarFotoTirada()
+            enviarFotoTirada();
 
-            $('#visualOpcoes').on('click', '#takeFoto', function () {
-                console.log('tentou tirar')
+            $('#takeFoto').on('click', function () {
                 var video = $('#preparaTirarFoto')[0];
-                var canvas = $('#rendFoto')[0];
-                var context = canvas.getContext('2d');
+                var canvasOriginal = $('#rendFoto')[0]; 
+                var canvasProcessed = $('#rendFotoProcessed')[0]; 
 
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
+                var contextOriginal = canvasOriginal.getContext('2d');
+                var contextProcessed = canvasProcessed.getContext('2d');
 
-                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                canvasOriginal.width = video.videoWidth;
+                canvasOriginal.height = video.videoHeight;
+                canvasProcessed.width = video.videoWidth;
+                canvasProcessed.height = video.videoHeight;
+
+                contextOriginal.drawImage(video, 0, 0, canvasOriginal.width, canvasOriginal.height);
+
+                var imgOriginalData = canvasOriginal.toDataURL(); 
+                $('#imgOriginal').attr('src', imgOriginalData);
+
+                processImage(canvasProcessed);
+
+                var imgProcessedData = canvasProcessed.toDataURL(); 
+                $('#imgProcessed').attr('src', imgProcessedData);  
 
                 $('#takeFoto').toggleClass('hidden flex');
                 $('#preparaTirarFoto').toggleClass('hidden flex');
                 $('#rendFoto').toggleClass('hidden flex');
+
                 confirmAcction('#sendImg');
             });
+
         });
 
         $('#apresentação').on('click', '#busca', function () {
@@ -357,7 +396,48 @@ $(document).ready(function () {
 
 });
 
+function processImage() {
+    const canvas = document.getElementById('rendFoto');  
+    const context = canvas.getContext('2d');
+    const image = new Image();
 
+    image.src = canvas.toDataURL(); 
+
+    image.onload = function () {
+        canvas.width = image.width;
+        canvas.height = image.height;
+        context.drawImage(image, 0, 0);
+
+        // Pega os dados de pixel da imagem
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+
+        const threshold = 200; 
+        const greenThreshold = { r: 0, g: 255, b: 0 };
+
+        // Loop sobre todos os pixels da imagem
+        for (let i = 0; i < data.length; i += 4) {
+            const r = data[i]; 
+            const g = data[i + 1]; 
+            const b = data[i + 2];
+
+            // Verifica se o pixel se aproxima da cor do fundo
+            if (Math.abs(r - greenThreshold.r) < threshold &&
+                Math.abs(g - greenThreshold.g) < threshold &&
+                Math.abs(b - greenThreshold.b) < threshold) {
+
+                data[i + 3] = 0; 
+            }
+        }
+
+        context.putImageData(imageData, 0, 0);
+
+        const processedImg = document.getElementById('rendFotoProcessed');
+        processedImg.src = canvas.toDataURL(); 
+        processedImg.classList.remove('hidden');  
+        console.log(canvas.toDataURL()); 
+    };
+}
 </script>
 
 <style>
