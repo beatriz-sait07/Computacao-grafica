@@ -58,23 +58,21 @@
 
         <div id="anexarFoto"
             class="hidden flex-col justify-around items-center border-2 border-gray-500 w-[90%] h-[60%] md:w-[60%] rounded-lg p-2">
-            <form action="enviarFotoBack" method="post" enctype="multipart/form-data"
+            <form id="uploadForm" action="enviarFotoBack" method="post" enctype="multipart/form-data"
                 class="w-full h-full flex flex-col">
                 <h1 class="w-full h-[15%] flex justify-center items-center text-2xl">Anexar arquivos da galeria</h1>
                 <div
                     class="w-full flex-1 border border-gray-400 rounded-md hover:bg-slate-800 hover:rounded-md hover:font-black">
-                    <label class="w-full h-full cursor-pointer flex justify-center items-center " for="arq">Anexar
-                        imagem
-                        a ser
-                        convertida</label>
-                    <input class="hidden" type="file" name="arquivo2d" id="arq" accept="image/*">
+                    <label class="w-full h-full cursor-pointer flex justify-center items-center" for="arq">Anexar imagem
+                        a ser convertida</label>
+                    <input class="hidden" type="file" name="image" id="arq" accept="image/*">
                 </div>
                 <div id="preview-container" class="w-full h-[50%] flex justify-center items-center mt-4">
                     <img id="preview-image" class="hidden max-w-full max-h-full border border-gray-300 rounded-lg"
                         alt="Pré-visualização da imagem">
                 </div>
                 <div class="w-full h-[20%] flex justify-center items-center">
-                    <button
+                    <button id="submitFile"
                         class="w-[90%] md:w-[60%] text-sm font-medium border border-gray-400 rounded-md p-2 hover:bg-slate-800 hover:rounded-md hover:font-black"
                         type="submit">
                         Visualizar imagem em 3D
@@ -165,13 +163,11 @@ function loadOBJ(objText) {
     controls.dampingFactor = 0.05;
     controls.enableZoom = true;
 
-    // Carregando o objeto
     const objLoader = new OBJLoader();
     const obj = objLoader.parse(objText);
     obj.position.set(0, 0, 0);
     scene.add(obj);
 
-    // Função de animação
     const animate = () => {
         controls.update();
         renderer.render(scene, camera);
@@ -180,6 +176,55 @@ function loadOBJ(objText) {
 
     animate();
 }
+
+onMounted(() => {
+    const fileInput = document.getElementById('arq');
+    const previewImage = document.getElementById('preview-image');
+    const previewContainer = document.getElementById('preview-container');
+    const uploadForm = document.getElementById('uploadForm');
+
+    if (fileInput) {
+        fileInput.addEventListener('change', function (event) {
+            const file = event.target.files[0];
+
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    previewImage.src = e.target.result;
+                    previewImage.classList.remove('hidden');
+                };
+
+                reader.readAsDataURL(file);
+            } else {
+                previewImage.classList.add('hidden');
+            }
+        });
+    } else console.error("Elemento 'fileInput' não encontrado no DOM.");
+
+    if (uploadForm) {
+        uploadForm.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            const formData = new FormData(uploadForm);
+            $('#anexarFoto').toggleClass('flex hidden');
+            $('#exibirObj').toggleClass('hidden flex');
+            $('.c-loader').removeClass('hidden');
+            fetch('https://e455-35-247-28-75.ngrok-free.app/pifuhd', {
+                method: 'POST',
+                body: formData,
+            })
+                .then(response => response.text())
+                .then(objData => {
+                    console.log("Objeto recebido:", objData);
+                    document.querySelector('#exibirObj').classList.remove('hidden');
+                    $('.c-loader').toggleClass('flex hidden');
+                    loadOBJ(objData);
+                })
+                .catch(error => console.error('Erro ao enviar imagem:', error));
+        });
+    } else console.error("Elemento 'uploadForm' não encontrado no DOM.");
+});
 
 async function enviarImagem() {
     let canvas = document.querySelector('#rendFoto');
@@ -193,7 +238,7 @@ async function enviarImagem() {
         method: 'POST',
         body: formData,
     })
-        .then(response => response.text()) // Obtendo a resposta como texto
+        .then(response => response.text())
         .then(objData => {
             console.log("Objeto recebido:", objData);
             document.querySelector('#exibirObj').classList.remove('hidden');
@@ -226,6 +271,7 @@ function desligarCamera() {
     }
     fecharOpc()
 }
+
 function fecharOpc() {
     $('#visualOpcoes').on('click', '#close', function () {
         console.log('feche nengue');
@@ -346,7 +392,6 @@ $(document).ready(function () {
         });
 
         $('#apresentação').on('click', '#anexo', function () {
-            console.log('Anexar Foto clicado!');
             $('#apresentação').toggleClass('flex hidden');
             $('#visualOpcoes').toggleClass('hidden flex');
             $('#anexarFoto').toggleClass('hidden flex');
