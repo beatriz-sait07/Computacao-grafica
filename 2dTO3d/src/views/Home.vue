@@ -55,30 +55,9 @@
                 </button>
             </section>
         </div>
-        <div id="buscarFotoBanco"
-            class="hidden flex-col justify-around items-center border-1 w-[90%] h-[60%] md:w-[60%] bg-transparent rounded-lg p-2">
-            <section class="w-full flex justify-center">
-                <div class="w-[80%] rounded-lg border-2 bg-transparent border-gray-500 flex px-3 py-1">
-                    <input type="text" name="buscaImg" id="buscaImg" class="bg-transparent flex-1">
-                    <svg class="w-6 h-6 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24"
-                        height="24" fill="none" viewBox="0 0 24 24">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-width="2"
-                            d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" />
-                    </svg>
-
-                </div>
-            </section>
-            <section class="w-full flex justify-center h-[60%]">
-                <!--botar um loader para mostra a busca-->
-                <div class="w-[80%] h-full rounded-lg border-2 bg-transparent border-gray-500 flex p-2">
-                    <p>busca do banco</p>
-                </div>
-            </section>
-        </div>
 
         <div id="anexarFoto"
             class="hidden flex-col justify-around items-center border-2 border-gray-500 w-[90%] h-[60%] md:w-[60%] rounded-lg p-2">
-            <!--adicionar rota do back que recebera o arquivo para transformar de 2d para 3d-->
             <form action="enviarFotoBack" method="post" enctype="multipart/form-data"
                 class="w-full h-full flex flex-col">
                 <h1 class="w-full h-[15%] flex justify-center items-center text-2xl">Anexar arquivos da galeria</h1>
@@ -255,7 +234,6 @@ function fecharOpc() {
         $('#visualOpcoes').removeClass('flex').addClass('hidden');
         $('#apresentação').removeClass('hidden').addClass('flex');;
         $('#fotoTirada').removeClass('flex').addClass('hidden');
-        $('#buscarFotoBanco').removeClass('flex').addClass('hidden');
         $('#anexarFoto').removeClass('flex').addClass('hidden');
         $('#exibirObj').removeClass('flex').addClass('hidden');
         desligarCamera()
@@ -336,7 +314,6 @@ $(document).ready(function () {
                 <div class="opcoes">
                     <lu class="flex gap-5 ">
                         <li id="anexo" class="bg-transparent border-2 border-gray-500 rounded-full p-4 cursor-pointer">Anexar Foto</li>
-                        <li id="busca" class="bg-transparent border-2 border-gray-500 rounded-full p-4 cursor-pointer">Buscar Foto</li>
                         <li id="tirar" class="bg-transparent border-2 border-gray-500 rounded-full p-4 cursor-pointer">Tirar Foto</li>
                     </lu>
                 </div>
@@ -367,14 +344,6 @@ $(document).ready(function () {
                 confirmAcction('#sendImg');
             });
         });
-
-        $('#apresentação').on('click', '#busca', function () {
-            $('#fotoTirada').addClass('hidden');
-            $('#apresentação').removeClass('flex').addClass('hidden');
-            $('#visualOpcoes').removeClass('hidden').addClass('flex');
-            $('#buscarFotoBanco').removeClass('hidden').addClass('flex');
-
-        })
 
         $('#apresentação').on('click', '#anexo', function () {
             console.log('Anexar Foto clicado!');
