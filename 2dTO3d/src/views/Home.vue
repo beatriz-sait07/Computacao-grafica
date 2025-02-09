@@ -76,8 +76,9 @@
             </section>
         </div>
 
-        <!-- <div id="anexarFoto"
+        <div id="anexarFoto"
             class="hidden flex-col justify-around items-center border-2 border-gray-500 w-[90%] h-[60%] md:w-[60%] rounded-lg p-2">
+            <!--adicionar rota do back que recebera o arquivo para transformar de 2d para 3d-->
             <form action="caminho.back" method="post" enctype="multipart/form-data" class="w-full h-full flex flex-col">
                 <h1 class="w-full h-[15%] flex justify-center items-center text-2xl">Anexar arquivos da galeria</h1>
                 <div
@@ -87,30 +88,6 @@
                         a ser
                         convertida</label>
                     <input class="hidden" type="file" name="arquivo2d" id="arq" accept="image/*">
-                </div>
-                <div id="preview-container" class="w-full h-[50%] flex justify-center items-center mt-4">
-                    <img id="preview-image" class="hidden max-w-full max-h-full border border-gray-300 rounded-lg"
-                        alt="Pré-visualização da imagem">
-                </div>
-                <div class="w-full h-[20%] flex justify-center items-center">
-                    <button
-                        class="w-[90%] md:w-[60%] text-sm font-medium border border-gray-400 rounded-md p-2 hover:bg-slate-800 hover:rounded-md hover:font-black"
-                        type="submit">
-                        Visualizar imagem em 3D
-                    </button>
-                </div>
-            </form>
-        </div> -->
-        <div id="anexarFoto"
-            class="hidden flex-col justify-around items-center border-2 border-gray-500 w-[90%] h-[60%] md:w-[60%] rounded-lg p-2">
-            <form @submit.prevent="enviarImagem" class="w-full h-full flex flex-col">
-                <h1 class="w-full h-[15%] flex justify-center items-center text-2xl">Anexar arquivos da galeria</h1>
-                <div
-                    class="w-full flex-1 border border-gray-400 rounded-md hover:bg-slate-800 hover:rounded-md hover:font-black">
-                    <label class="w-full h-full cursor-pointer flex justify-center items-center" for="arq">Anexar imagem
-                        a ser convertida</label>
-                    <input class="hidden" type="file" name="arquivo2d" id="arq" accept="image/*"
-                        @change="handleFileChange">
                 </div>
                 <div id="preview-container" class="w-full h-[50%] flex justify-center items-center mt-4">
                     <img id="preview-image" class="hidden max-w-full max-h-full border border-gray-300 rounded-lg"
@@ -230,8 +207,8 @@ function enviarFotoTirada() {
     }
     navigator.mediaDevices.getUserMedia(specs)
         .then(stream => {
-            video.srcObject = stream;
-            video.play();
+            video.srcObject = stream; //pegando frames do video 
+            video.play(); // "vendo video"
         })
         .catch(e => {
             console.error('Erro', e)
@@ -241,7 +218,7 @@ function enviarFotoTirada() {
 function desligarCamera() {
     var video = document.querySelector('#preparaTirarFoto');
 
-    if (video.srcObject) {
+    if (video.srcObject) { //a funcao track serve para câmera e microfone, se aplicável
         video.srcObject.getTracks().forEach(track => {
             track.stop();
         });
@@ -274,16 +251,14 @@ function confirmAcction(element) {
         </div>
     `);
 
-    // Evento para confirmar
-    $('#fotoTirada').on('click', '#confirSend', async function () {
-        desligarCamera();
+    $('#fotoTirada').on('click', '#confirSend', function () {
+        desligarCamera()
         $('#fotoTirada').toggleClass('hidden flex');
         $('#exibirObj').toggleClass('hidden flex');
-        $('#sendFoto').removeClass('hidden');
-        await enviarFotoParaBackend(); // Chama a função correta
     });
 
-    $('#fotoTirada').on('click', '#cancelSend', function () {
+    // Evento para cancelar
+    $('#cancelSend').on('click', function () {
         $(element).find('canvas').removeClass('flex').addClass('hidden');
         $(element).find('video').removeClass('hidden').addClass('flex');
         enviarFotoTirada();
@@ -314,8 +289,9 @@ onMounted(() => {
             }
         });
     } else console.error("Elemento 'fileInput' não encontrado no DOM.");
-
+    
 });
+
 
 //-------JQUERY question-------
 $(document).ready(function () {
@@ -331,7 +307,7 @@ $(document).ready(function () {
                 </div>
             `);
         } else $('.opcoes').toggleClass('hidden flex');
-
+        
 
         $('#apresentação').on('click', '#tirar', function () {
             $('#apresentação').toggleClass('flex hidden');
@@ -353,7 +329,7 @@ $(document).ready(function () {
                 $('#takeFoto').toggleClass('hidden flex');
                 $('#preparaTirarFoto').toggleClass('hidden flex');
                 $('#rendFoto').toggleClass('hidden flex');
-                confirmAcction('#fotoTirada');
+                confirmAcction('#sendImg');
             });
         });
 
@@ -377,159 +353,6 @@ $(document).ready(function () {
     fecharOpc()
 
 });
-
-function processarMatriz(matriz) {
-    // Exemplo de processamento da matriz, você pode ajustar conforme a estrutura exata
-    const vertices = [];
-    const linhas = matriz.split("\n");
-
-    for (let linha of linhas) {
-        if (linha.startsWith('v')) {
-            const valores = linha.split(' ').slice(1); // Remove o 'v' e pega os valores
-            const coordenadas = valores.map(parseFloat); // Converte para float
-            vertices.push(coordenadas);
-        }
-    }
-
-    return vertices;
-}
-
-function renderizarMatriz3D(vertices) {
-    const containerRender = document.getElementById('exibirObj');
-    const width = containerRender.clientWidth || window.innerWidth;
-    const height = containerRender.clientHeight || window.innerHeight;
-
-    const renderer = new WebGLRenderer({ alpha: true });
-    renderer.setSize(width, height);
-    containerRender.appendChild(renderer.domElement);
-
-    const scene = new Scene();
-    const camera = new PerspectiveCamera(75, width / height, 0.1, 1000);
-    camera.position.set(0, 1, 5);
-
-    const light = new DirectionalLight(0xffffff, 1);
-    light.position.set(1, 1, 1).normalize();
-    scene.add(light);
-
-    const geometry = new Geometry();
-    vertices.forEach(vertex => {
-        geometry.vertices.push(new Vector3(vertex[0], vertex[1], vertex[2]));
-    });
-
-    const material = new PointsMaterial({ color: 0x00ff00, size: 0.1 });
-    const points = new Points(geometry, material);
-    scene.add(points);
-
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableZoom = true;
-
-    function animate() {
-        controls.update();
-        renderer.render(scene, camera);
-        requestAnimationFrame(animate);
-    }
-
-    animate();
-}
-
-async function processarResposta(response) {
-    try {
-        // Supondo que a resposta seja uma string de coordenadas ou dados de vértices
-        const vertices = processarMatriz(response.matriz); // Aqui você usa a função de processamento de matriz
-
-        // Chama a função de renderização para gerar o objeto 3D
-        renderizarMatriz3D(vertices);
-    } catch (error) {
-        console.error("Erro ao processar a resposta:", error);
-    }
-}
-
-const enviarFotoBack = async () => {
-    try {
-        // Primeiro, verifica se o arquivo de imagem foi selecionado
-        if (!image) {
-            alert('Por favor, selecione uma imagem.');
-            return;
-        }
-
-        // Agora, envia a imagem ao backend
-        const formData = new FormData();
-        formData.append('image', image);
-
-        // Substitua a URL pela URL da sua API de envio
-        const response = await fetch('https://5c34-35-231-79-166.ngrok-free.app/pifuhd', {
-            method: 'POST',
-            body: formData,
-        });
-
-        const data = await response.json();
-
-        if (response.ok) {
-            alert('Imagem enviada com sucesso!');
-            processarResposta(data);
-        } else {
-            alert('Erro ao enviar a imagem: ' + data.message);
-        }
-    } catch (error) {
-        console.error("Erro ao enviar a foto:", error);
-    }
-};
-
-
-function handleFileChange(event) {
-    const file = event.target.files[0];
-    const previewImage = document.getElementById('preview-image');
-
-    if (file && file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            previewImage.src = e.target.result;
-            previewImage.classList.remove('hidden');
-        };
-        reader.readAsDataURL(file);
-    } else {
-        previewImage.classList.add('hidden');
-    }
-}
-
-
-async function enviarFotoParaBackend() {
-    var canvas = document.getElementById('rendFoto');
-    var imageData = canvas.toDataURL("image/jpeg"); // Captura a imagem do canvas como Base64
-
-    // Converte Base64 para Blob
-    const byteString = atob(imageData.split(',')[1]); // Remove a parte 'data:image/png;base64,'
-    const arrayBuffer = new ArrayBuffer(byteString.length);
-    const uint8Array = new Uint8Array(arrayBuffer);
-
-    for (let i = 0; i < byteString.length; i++) {
-        uint8Array[i] = byteString.charCodeAt(i);
-    }
-
-    const blob = new Blob([uint8Array], { type: 'image/jpeg' });
-
-    // Adiciona o Blob ao FormData
-    const formData = new FormData();
-    formData.append('image', blob, 'canvas-image.jpeg');
-
-    // Envia para o backend
-    await fetch("https://5c34-35-231-79-166.ngrok-free.app/pifuhd", {
-        method: 'POST',
-        body: formData,
-    })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`Erro na resposta: ${response.statusText}`);
-            }
-            return response.blob();
-        })
-        .then(blob => {
-            const objectUrl = URL.createObjectURL(blob);
-            console.log("OBJ File URL:", objectUrl);
-            const link = document.createElement('a');
-        })
-        .catch(error => console.error('Erro ao enviar foto para backend:', error));
-}
 </script>
 
 <style>
