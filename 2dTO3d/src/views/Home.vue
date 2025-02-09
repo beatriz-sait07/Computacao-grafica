@@ -79,7 +79,8 @@
         <div id="anexarFoto"
             class="hidden flex-col justify-around items-center border-2 border-gray-500 w-[90%] h-[60%] md:w-[60%] rounded-lg p-2">
             <!--adicionar rota do back que recebera o arquivo para transformar de 2d para 3d-->
-            <form action="caminho.back" method="post" enctype="multipart/form-data" class="w-full h-full flex flex-col">
+            <form action="enviarFotoBack" method="post" enctype="multipart/form-data"
+                class="w-full h-full flex flex-col">
                 <h1 class="w-full h-[15%] flex justify-center items-center text-2xl">Anexar arquivos da galeria</h1>
                 <div
                     class="w-full flex-1 border border-gray-400 rounded-md hover:bg-slate-800 hover:rounded-md hover:font-black">
@@ -131,66 +132,6 @@ const rightIndex = computed(() => {
     return (indexAtual.value + 1) % imagens.value.length;
 });
 
-onMounted(() => {
-    const containerRender = document.getElementById('exibirObj');
-
-    if (!containerRender) {
-        console.error("Conteiner 'exibirObj' não encontrado.");
-        return;
-    }
-
-    const width = containerRender.clientWidth || window.innerWidth;
-    const height = containerRender.clientHeight || window.innerHeight;
-
-    const render = new WebGLRenderer({ alpha: true });
-    render.setClearColor(0x000000, 0); // Fundo transparente
-    render.clear();
-    render.setSize(width, height);
-    containerRender.appendChild(render.domElement);
-
-    // Criando cena e câmera
-    const cena = new Scene();
-    const camera = new PerspectiveCamera(75, width / height, 0.1, 1000);
-    camera.position.set(0, 1, 5);
-
-    // Adicionando luzes
-    const luzDirecional = new DirectionalLight(0xffffff, 1);
-    luzDirecional.position.set(1, 1, 1).normalize();
-    cena.add(luzDirecional);
-
-    const luzAmbiente = new AmbientLight(0x404040);
-    cena.add(luzAmbiente);
-
-    const controls = new OrbitControls(camera, render.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.enableZoom = true;
-
-    // Carregando objeto 3D
-    const loader = new OBJLoader();
-    loader.setPath('../src/assets/');
-    loader.load(
-        'teste01.obj',
-        (obj) => {
-            obj.scale.set(1, 1, 1);
-            obj.position.set(0, 0, 0);
-            cena.add(obj);
-            console.log('Objeto carregado com sucesso!');
-        },
-        (progress) => console.log(`Carregando: ${(progress.loaded / progress.total) * 100}%`),
-        (error) => console.error('Erro ao carregar o objeto:', error)
-    );
-
-    // Função de animação
-    const animate = () => {
-        controls.update();
-        render.render(cena, camera);
-        requestAnimationFrame(animate);
-    };
-
-    animate();
-});
-
 //FUNCOES DE FUNCIONAMENTO DE CLICK E AFINS
 onMounted(() => {
     setInterval(slide, 3000);
@@ -198,27 +139,104 @@ onMounted(() => {
 
 function enviarFotoTirada() {
     var video = document.querySelector('#preparaTirarFoto');
+    const specs = { video: { width: 320, height: 110 } };
 
-    const specs = {
-        video: {
-            with: 320,
-            height: 110,
-        }
-    }
     navigator.mediaDevices.getUserMedia(specs)
         .then(stream => {
-            video.srcObject = stream; //pegando frames do video 
-            video.play(); // "vendo video"
+            video.srcObject = stream;
+            video.play();
         })
-        .catch(e => {
-            console.error('Erro', e)
+        .catch(e => console.error('Erro ao acessar câmera:', e));
+}
+
+function loadOBJ(objText) {
+    console.log("Carregando OBJ...");
+    const containerRender = document.getElementById('exibirObj');
+
+    if (!containerRender) {
+        console.error("Contêiner 'exibirObj' não encontrado.");
+        return;
+    }
+
+    containerRender.innerHTML = '';
+
+    const width = containerRender.clientWidth || window.innerWidth;
+    const height = containerRender.clientHeight || window.innerHeight;
+
+    const renderer = new WebGLRenderer({ alpha: true });
+    renderer.setSize(width, height);
+    containerRender.appendChild(renderer.domElement);
+
+    // Criando cena e câmera
+    const scene = new Scene();
+    const camera = new PerspectiveCamera(75, width / height, 0.1, 1000);
+    camera.position.set(0, 1, 5);
+
+    // Adicionando luzes
+    const luzDirecional = new DirectionalLight(0xffffff, 1);
+    luzDirecional.position.set(1, 1, 1).normalize();
+    scene.add(luzDirecional);
+
+    const luzAmbiente = new AmbientLight(0x404040);
+    scene.add(luzAmbiente);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.enableZoom = true;
+
+    // Carregando o objeto
+    const objLoader = new OBJLoader();
+    const obj = objLoader.parse(objText);
+    obj.position.set(0, 0, 0);
+    scene.add(obj);
+
+    // Função de animação
+    const animate = () => {
+        controls.update();
+        renderer.render(scene, camera);
+        requestAnimationFrame(animate);
+    };
+
+    animate();
+}
+
+function enviarImagem() {
+    let canvas = document.querySelector('#rendFoto');
+    let imageBase64 = canvas.toDataURL('image/png');
+    let blob = dataURLtoBlob(imageBase64);
+    let formData = new FormData();
+    formData.append('image', blob, 'foto.png');
+
+    fetch('https://e455-35-247-28-75.ngrok-free.app/pifuhd', {
+        method: 'POST',
+        body: formData,
+    })
+        .then(response => response.text()) // Obtendo a resposta como texto
+        .then(objData => {
+            console.log("Objeto recebido:", objData);
+            document.querySelector('#exibirObj').classList.remove('hidden');
+            loadOBJ(objData);
         })
+        .catch(error => console.error('Erro ao enviar imagem:', error));
+}
+
+function dataURLtoBlob(dataURL) {
+    let arr = dataURL.split(',');
+    let mime = arr[0].match(/:(.*?);/)[1];
+    let bstr = atob(arr[1]);
+    let n = bstr.length;
+    let u8arr = new Uint8Array(n);
+    while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], { type: mime });
 }
 
 function desligarCamera() {
     var video = document.querySelector('#preparaTirarFoto');
 
-    if (video.srcObject) { //a funcao track serve para câmera e microfone, se aplicável
+    if (video.srcObject) {
         video.srcObject.getTracks().forEach(track => {
             track.stop();
         });
@@ -255,15 +273,29 @@ function confirmAcction(element) {
         desligarCamera()
         $('#fotoTirada').toggleClass('hidden flex');
         $('#exibirObj').toggleClass('hidden flex');
+
+        let canvas = document.getElementById('rendFoto');
+
+        if (!canvas) {
+            console.error('Canvas não encontrado!');
+            return;
+        }
+        enviarImagem(canvas);
+
     });
 
     // Evento para cancelar
     $('#cancelSend').on('click', function () {
-        $(element).find('canvas').removeClass('flex').addClass('hidden');
-        $(element).find('video').removeClass('hidden').addClass('flex');
         enviarFotoTirada();
-        desligarCamera();
+        if (enviarFotoTirada === 1) finalizarEnvio()
     });
+}
+
+// Função para finalizar o envio e esconder elementos
+function finalizarEnvio() {
+    desligarCamera();
+    $('#fotoTirada').toggleClass('hidden flex');
+    $('#exibirObj').toggleClass('hidden flex');
 }
 
 onMounted(() => {
@@ -289,7 +321,7 @@ onMounted(() => {
             }
         });
     } else console.error("Elemento 'fileInput' não encontrado no DOM.");
-    
+
 });
 
 
@@ -307,7 +339,7 @@ $(document).ready(function () {
                 </div>
             `);
         } else $('.opcoes').toggleClass('hidden flex');
-        
+
 
         $('#apresentação').on('click', '#tirar', function () {
             $('#apresentação').toggleClass('flex hidden');
