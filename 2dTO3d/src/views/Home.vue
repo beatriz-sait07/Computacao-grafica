@@ -105,6 +105,7 @@
         </div>
 
         <div id="exibirObj" class="hidden w-[80%] justify-center rounded-md">
+            <div class="c-loader hidden"></div>
         </div>
     </div>
 </template>
@@ -201,14 +202,15 @@ function loadOBJ(objText) {
     animate();
 }
 
-function enviarImagem() {
+async function enviarImagem() {
     let canvas = document.querySelector('#rendFoto');
     let imageBase64 = canvas.toDataURL('image/png');
     let blob = dataURLtoBlob(imageBase64);
     let formData = new FormData();
     formData.append('image', blob, 'foto.png');
 
-    fetch('https://e455-35-247-28-75.ngrok-free.app/pifuhd', {
+    $('.c-loader').removeClass('hidden');
+    await fetch('https://e455-35-247-28-75.ngrok-free.app/pifuhd', {
         method: 'POST',
         body: formData,
     })
@@ -216,6 +218,7 @@ function enviarImagem() {
         .then(objData => {
             console.log("Objeto recebido:", objData);
             document.querySelector('#exibirObj').classList.remove('hidden');
+            $('.c-loader').toggleClass('flex hidden');
             loadOBJ(objData);
         })
         .catch(error => console.error('Erro ao enviar imagem:', error));
