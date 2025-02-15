@@ -1,29 +1,45 @@
-# 2dto3d
+# 2D to 3D
 
-This template should help get you started developing with Vue 3 in Vite.
+## Iniciando o Backend (API)
 
-## Recommended IDE Setup
+1. Acesse o diretório do backend:
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+   ```sh
+   cd 2dTO3d-api
+   ```
 
-## Customize configuration
+2. Execute todas as células do código.
+3. Copie a porta de conexão da API com o front-end.
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+## Iniciando a Comunicação com o Front-end
 
-## Project Setup
+1. Acesse o diretório do front-end:
 
-```sh
-npm install
-```
+   ```sh
+   cd 2dTO3d
+   ```
 
-### Compile and Hot-Reload for Development
+2. Cole a rota da API no arquivo `.env` (mantenha o nome da variável original).
+3. Instale as dependências necessárias:
 
-```sh
-npm run dev
-```
+   ```sh
+   npm install
+   ```
 
-### Compile and Minify for Production
+4. Inicie a aplicação:
 
-```sh
-npm run build
-```
+   ```sh
+   npm run dev
+   ```
+
+5. Abra a aplicação pressionando `Ctrl + Clique` no link exibido no terminal.
+
+## Informações de Usabilidade da Aplicação
+
+1. Selecione o modelo para criar seu objeto 3D:
+   - **Tirar uma foto:**
+     1. Confirme o envio da foto.
+     2. Visualize o objeto gerado.
+   - **Enviar um arquivo:**
+     1. Selecione o arquivo.
+     2. Visualize o objeto gerado.
