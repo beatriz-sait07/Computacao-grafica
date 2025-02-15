@@ -211,7 +211,7 @@ onMounted(() => {
             $('#exibirObj').toggleClass('hidden flex');
             $('.c-loader').removeClass('hidden');
 
-            const apiUrl = import.meta.env.VITE_API_URL;
+            const apiUrl = import.meta.env.VITE_API_URL + 'pifuhd';
 
             fetch(apiUrl, {
                 method: 'POST',
@@ -238,7 +238,9 @@ async function enviarImagem() {
     formData.append('image', blob, 'foto.png');
 
     $('.c-loader').removeClass('hidden');
-    await fetch('https://e455-35-247-28-75.ngrok-free.app/pifuhd', {
+    const apiUrl = import.meta.env.VITE_API_URL + 'pifuhd';
+
+    await fetch(apiUrl, {
         method: 'POST',
         body: formData,
     })
