@@ -210,7 +210,10 @@ onMounted(() => {
             $('#anexarFoto').toggleClass('flex hidden');
             $('#exibirObj').toggleClass('hidden flex');
             $('.c-loader').removeClass('hidden');
-            fetch('https://e455-35-247-28-75.ngrok-free.app/pifuhd', {
+
+            const apiUrl = import.meta.env.VITE_API_URL;
+
+            fetch(apiUrl, {
                 method: 'POST',
                 body: formData,
             })
@@ -224,6 +227,7 @@ onMounted(() => {
                 .catch(error => console.error('Erro ao enviar imagem:', error));
         });
     } else console.error("Elemento 'uploadForm' não encontrado no DOM.");
+
 });
 
 async function enviarImagem() {
