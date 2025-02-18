@@ -1,4 +1,7 @@
-# 2D to 3D
+# 2D to 3D - Computação Gráfica - Eng.Computação
+* Beatriz Saito
+* Maria Angélica
+* Taynan Mancilla
 
 ## Iniciando o Backend (API)
 
