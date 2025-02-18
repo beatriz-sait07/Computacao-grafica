@@ -5,6 +5,7 @@
 1. Acesse a pasta `2dTO3d-API` logo acima
 2. Entre no arquivo `2dTO3d_API.ipynb`
 3. Abra o Colab
+
 ![Abrir Colab](/images/open-colab.png)
 
 3. Copie a url da API pra usar no front-end.
