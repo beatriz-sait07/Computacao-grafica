@@ -9,6 +9,7 @@
 ![Abrir Colab](/images/open-colab.png)
 
 3. Copie a url da API pra usar no front-end.
+   
 ![Copiar URL da API](/images/copia-url.png)
 
 ## Iniciando a Comunicação com o Front-end
